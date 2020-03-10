@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled Document</title>
+  </head>
+
+  <body>
+    <h2>打開 Console 查看輸出</h2>
+
+    <script>
+      //for (var i=0; i< 5; i++) schemaPageHandler();
+
+      var count = 0;
+      useMyPromise();
+
+      function myPromise() {
+        return new Promise(function(resolve, reject) {
+
+          var countFor4 = setInterval(function() {
+            console.log(count);
+            count++;
+            if (count == 4) {
+              clearInterval(countFor4);
+              console.log("Count 到達 4");
+              resolve(count + 4);
+            }
+          }, 1000);
+
+        });
+      }
+
+      async function useMyPromise() {
+        var afterCount = await myPromise();
+        console.log("Count+4=", afterCount);
+      }
+
+      function getHTML(url) {
+        return new Promise(function(resolve, reject) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('get', url, true);
+          xhr.responseType = 'document';
+          xhr.onload = function() {
+            var status = xhr.status;
+            if (status == 200) {
+              resolve(xhr.response.documentElement.innerHTML);
+            } else {
+              reject(status);
+            }
+          };
+          xhr.send();
+        });
+      }
+
+      async function schemaPageHandler() {
+        try {
+          var parser = new window.DOMParser();
+          console.log("aaa");
+          var remoteCode = await getHTML('https://schema.org/docs/full.html');
+          console.log("bbb");
+          var sourceDoc = parser.parseFromString(remoteCode, 'text/html');
+          var thingList = sourceDoc.getElementById("C.Thing");
+          //document.getElementById("structured-data-types").appendChild(thingList);
+          console.log(thingList);
+        } catch (error) {
+          console.log("Error fetching remote HTML: ", error);
+        }
+      }
+    </script>
+
+
+  </body>
+
+</html>

@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+
+<!--處理輸入參數 ?displayName=小華&userId=U722be0c9c9d36e011c0e556bd2047819&pictureUrl=www.google.com-->
+<!--?API=60&UserName=小華&ChallengeId=T0003&UserId=U722be0c9c9d36e011c0e556bd2047819&PhoneNumber=09XXXXX333-->
+
+<head>
+  <!--  設定參數-->
+  <script>
+    var useLocalAPIs = false;
+    var version = "1.4";
+  </script>
+  
+  <meta charset="UTF-8">
+  <title>uGym 挑戰賽</title>
+  <!--  <link rel="stylesheet" href="css/main.css">-->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">  
+  <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+  <!--  <script src="js/jquery.twzipcode.min.js"></script>-->
+
+  <link rel="stylesheet" href="css/loading.css" />
+  <script src="js/loading.js"></script>  
+
+  <link rel="stylesheet" href="css/mescroll.css">
+    <link rel="stylesheet" href="css/coupon.css" />
+    
+  <style type="text/css">
+    /*mescroll 滚动区域*/
+    .mescroll {
+      position: fixed;
+      top: 44px;
+      bottom: 0;
+      height: auto;
+    }
+    
+    .inputWithUnit { /* 只是為了讓身高和體重的輸入 有單位顯示*/
+      width: 50%; 
+      margin: 8px; 
+      border: none;       
+    }    
+  </style>
+  <script src="js/mescroll.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>
+<div id="mescroll" class="mescroll"> 
+  <div id="joinFormHeader" class="w3-container w3-blue">
+    <h2 style="font-family: 'Noto Sans TC'">請提供參加團體課程，挑戰賽及使用優惠券的必要資料 
+      <span id="versionStr1" style="float: right; font-size: 0.5em;"></span>
+    </h2>
+    
+  </div>
+
+  <div id="joinForm" class="w3-container bg" style="font-family: 'Noto Sans TC'">
+    <p>
+      <label>姓名(LINE 暱稱)</label>
+      <label id="name" class="w3-input"></p>
+    <p>
+      <label>姓別(必填，Inbody 量測需要)</label>
+      <select id="gender" class="w3-select" name="option">
+<!--        <option value="" disabled selected>男，女或保密</option>-->
+        <option value="男">男</option>
+        <option value="女">女</option>
+<!--        <option value="保密">保密</option>-->
+      </select></p>
+    <p>
+      <label>生日(必填，Inbody 量測需要)</label>
+      <input id="birthday" class="w3-input" type="text" placeholder="格式 2020-01-01"></p>      
+    <p>     
+      <label>身高(必填，Inbody 量測需要)</label>
+      <input id="bodyHeight" class="inputWithUnit" type="text" placeholder="例如: 180cm">cm</p>
+      <div style="height: 1px; margin-top: -15px; border-bottom-style: solid;border-width: 1px;border-color: lightgray"></div>
+    <p>
+      <label>體重(必填，Inbody 量測需要)</label>
+      <input id="bodyWeight" class="inputWithUnit" type="text" placeholder="例如: 60kg">kg</p>
+      <div style="height: 1px; margin-top: -15px; border-bottom-style: solid;border-width: 1px;border-color: lightgray"></div>      
+    <p>          
+      <label>電話(必填，聯絡使用)</label>
+      <input id="phone" class="w3-input" type="text"></p>
+    <p>
+      <label>身分證號(必填，作為會員身份辨識，不用做其他用途)</label>
+      <input id="identity" class="w3-input" type="text"></p>
+    <p>
+      <label>緊急連絡人(必填，緊急聯絡使用)</label>
+      <input id="emergencyContact" class="w3-input" type="text"></p>
+    <p>
+      <label>緊急連絡電話(必填，緊急聯絡使用)</label>
+      <input id="emergencyPhone" class="w3-input" type="text"></p>
+    <p>
+      <label>地址(建議，聯絡使用)</label>
+      <input id="address" class="w3-input" type="text"></p>
+    <p>          
+      <button class="w3-btn w3-block w3-indigo" onclick="addConfirm()">送出資料</button>
+    </p>
+    <p>
+      <label>點擊 送出資料 表示您同意以下隱私權以及資料使用條款聲明</label>
+    </p>
+  </div>
+
+  <div class="w3-container">
+    <div id="finishMessage" style="display: none">
+      <h3 style="font-family: 'Noto Sans TC'">您已成功加入會員，謝謝!</h3>
+    </div>
+
+    <div id="errorMessage" style="display: none">
+      <h3 style="font-family: 'Noto Sans TC'">發生錯誤，請洽管理員。</h3>
+    </div>
+
+    <div id="alreadyMessage" style="display: none">
+      <h3 style="font-family: 'Noto Sans TC'">您以前已經加入會員!</h3>
+    </div>
+  </div>
+  
+<!--    ---------- 以下是 挑戰賽資料  --------------------------------------------------- ----->
+  <div id="courseSection" style="display: none">
+    <div id="courseSectionHeader" class="w3-container w3-blue">
+      <h2 style="font-family: 'Noto Sans TC'">我的挑戰賽 
+        <span id="versionStr2" style="float: right; font-size: 0.5em;"></span>
+      </h2>
+    </div> 
+         
+    <div class="w3-container" id="availableCourses" style="font-family: 'Noto Sans TC'">
+      <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px;"></i></button></span>
+      <h4 style="font-family: 'Noto Sans TC'; display: inline;">可參加挑戰賽</h4>
+    </div>   
+    
+    <hr>
+    <div class="w3-container" id="usedCoupons" style="font-family: 'Noto Sans TC'">
+      <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px"></i></button></span>     
+      <h4 style="font-family: 'Noto Sans TC'; display: inline">已參加挑戰賽</h4>
+    </div> 
+                 
+    <hr>
+    <div class="w3-container" id="oldCoupons" style="font-family: 'Noto Sans TC'">
+      <span><button class="w3-button w3-circle w3-teal" style="margin: 10px; width: 40px" onclick="refreshCoupons()"><i class="fa fa-refresh" style="margin-left: -3px"></i></button></span>     
+      <h4 style="font-family: 'Noto Sans TC'; display: inline">已到期挑戰賽</h4>
+    </div>                  
+                  
+  </div>  
+  
+  <!-- 核銷 Modal -->
+  <div id="核銷Modal" class="modal" style="font-family: 'Noto Sans TC'">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span onclick="核銷取消按鈕()" class="close">&times;</span>
+      <p style="font-size:20px;">請洽櫃台人員兌換獎品</p>
+      <!--      <p style="font-size:20px">輸入兌換號碼</p>-->
+      <input id="兌換碼" class="w3-input" type="text" placeholder="請輸入兌換碼"></p>
+      <p onclick="確認兌換獎品按鈕()" style="text-align:center; color:white; background-color:indigo; 
+         border-radius: 5px; border-width:0px; font-size:20px; padding:10px; margin:30px auto auto 10px;
+      ">確認兌換獎品</p>
+    </div>
+  </div>
+          
+  </div>
+  <script>
+    $("#versionStr1").text("v."+version);
+    $("#versionStr2").text("v."+version);    
+    if (useLocalAPIs) {
+      console.log("使用 local API 服務");
+    } else {
+      console.log("使用放在 Heroku 上的 API 服務");
+    }
+    
+  var initialLoad = true;
+
+    // mescroll 下拉 回彈 更新=======================
+    var mescroll = new MeScroll("mescroll", {
+      down: {
+        //auto: false 
+        callback: function(){
+          console.log("initial load", initialLoad);
+          if (initialLoad) {
+            mescroll.endSuccess(); 
+            initialLoad = false;
+          } else {
+            mescroll.endSuccess(); 
+            console.log("reload", mescroll.isDownScrolling);   
+            // 用 setTimeout 延遲，讓 iOS 上有時間回彈
+            setTimeout(function(){location.reload();}, 300);
+            //}
+
+          }        
+        },
+        isBounce: false, 
+        toTop: {},
+        lazyLoad: { use: true } 
+      },    
+      up: {
+        //callback: pullUptoReload, 
+        isBounce: false, 
+        toTop: {},
+        lazyLoad: { use: true } 
+      }
+    });   
+    // ==========================================  
+    
+    var memberData = [];
+    var dataToAdd = [];
+    var paramToSend;
+    var inputParamString = location.search;
+    var inputError = false;
+    //var userIdString = location.search;  
+    
+    var couponData=[];
+    var couponHistory=[];
+    var couponMember=[];  
+    var userPhoneNumber;
+    var allDataReady=0;
+        
+    var 運動資料=[];
+    var 挑戰賽兌獎編號=[];
+    var 兌獎條件=[];
+    var 獎品數量=[];
+
+    notInCoupon=[];
+    inCoupon=[];
+    myHistory=[];     
+    
+    $("#joinForm").hide();
+    $("#joinFormHeader").hide();
+    
+    // 處理輸入參數 ?displayName=小陳&userId=U12345678901234567890123456789012&pictureUrl=www.google.com
+    var inputParam = inputParamString.split("&");
+    // inputParam[0]="?displayName=..."
+    // inputParam[1]="userId=..."
+    // inputParam[2]="pictureUrl=..."
+    try {
+      var displayName = inputParam[0].split("=");
+      var userId      = inputParam[1].split("=");
+      var pictureUrl  = inputParam[2].split("=");
+    } catch (e) {
+      alert("輸入參數錯誤");
+      $("#joinForm").hide();
+      $("#errorMessage").css("display", "block");
+      inputError = true;
+    }
+
+    if (!inputError) {
+      console.log(displayName, userId, pictureUrl);
+
+      if (userId[0] == "userId" && userId[1].length==33 ) {
+        console.log("valid UserId ", userId[1]);
+
+        checkUserIdExist();
+
+        $("#name").text(decodeURI(displayName[1]));
+
+
+      } else {
+        $("#joinForm").hide();
+        $("#errorMessage").css("display", "block");
+        alert("無效的 LINE ID!!");
+      }
+    }
+
+    // 非同步
+    function callAPI(param, loadingMessage) {
+      return new Promise(function(resolve, reject) {       
+        var request = new XMLHttpRequest();
+        if (useLocalAPIs) {
+          request.open('GET', 'http://localhost:5000' + param, true);
+        } else {
+          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+param, true);
+        }
+
+        request.onload = function() {
+          $.loading.end();
+          //console.log(this.response);
+          
+          resolve(this.response);
+        }
+        // Send API request 
+        $.loading.start(loadingMessage);
+
+        request.send();    
+      });
+    }
+    
+    async function checkUserIdExist() {
+      paramToSend = "?API=00" + "&UserId=" + userId[1];      
+      var res = await callAPI(paramToSend, '檢查是否已填寫必要資料');
+      
+      if (res == "API:00 會員不存在") {
+        $("#joinForm").show();
+        $("#joinFormHeader").show();
+        alert("為了讓您更容易使用團體課程，挑戰賽及使用優惠券，請填寫必要資料")
+      } else {
+        $("#joinForm").hide();
+        $("#joinFormHeader").hide();
+        //$("#alreadyMessage").css("display", "block");            
+        //alert("您以前已經加入會員! 前往挑戰賽");
+        // 顯示挑戰賽表格
+        console.log("前往挑戰賽");
+        $("#courseSection").css("display", "block");
+        readCoupons();
+        //addCouponCards();
+      }
+    }
+
+    async function addConfirm() {
+      console.log("addConfirm");
+      
+      // 檢查資料格式     
+      if (   $("#name").text() == ""
+          || $("#gender").val() == ""
+          || $("#birthday").val() == ""
+          || $("#phone").val() == ""
+          || $("#identity").val() == ""
+          || $("#emergencyContact").val() == ""
+          || $("#emergencyPhone").val() == ""          
+         ) {
+        alert("請填寫必填項目!");
+        return 0;
+      }
+
+      paramToSend = "?API=01" +
+        "&Name=" + $("#name").text() +
+        "&Gender=" + $("#gender").val() +     
+        "&Birth=" + $("#birthday").val() +
+        "&Phone=" + $("#phone").val() +
+        "&ID=" + $("#identity").val() +
+        "&Address=" + $("#address").val() +
+        "&UserId=" + userId[1] +        
+        "&PicURL=" + pictureUrl[1] +       
+        "&Height=" + $("#bodyHeight").val()+
+        "&Weight=" + $("#bodyWeight").val()+        
+        "&EmergencyContact=" + $("#emergencyContact").val()+
+        "&EmergencyPhone=" + $("#emergencyPhone").val();        
+
+      var profile = "請確認會員資料:\n" +
+        "    會員姓名: " + $("#name").text() + "\n" +
+        "    會員姓別: " + $("#gender").val() + "\n" +
+        "    會員生日: " + $("#birthday").val() + "\n" +          
+        "    會員身高: " + $("#bodyHeight").val() + " cm" +"\n" +          
+        "    會員體重: " + $("#bodyWeight").val() + " kg" +"\n" +            
+        "    會員電話: " + $("#phone").val() + "\n" +
+        "    身分證號: " + $("#identity").val() + "\n" +
+        "    會員地址: " + $("#address").val() + "\n" +
+        "    緊急聯絡人:" + $("#emergencyContact").val() + "\n" +       
+        "    緊急聯絡電話:" + $("#emergencyPhone").val(); 
+
+      console.log(paramToSend);
+
+      //window.location("https://member-join-form-for-line.herokuapp.com/"+paramToSend);
+      //webCourseAPI();      
+
+      if (confirm(profile)) {
+        // POST to write FTP
+        userName = decodeURI(displayName[1]);
+        var request = new XMLHttpRequest();   // new HttpRequest instance 
+        var theUrl1 = "https://ugym3dbiking.azurewebsites.net/api/Questionnaire?Code=debug123"
+        var theUrl2 = ""; // 預留給 GET 測試
+        request.open("POST", theUrl1);
+        request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        
+        request.onload = function() { console.log("aaa", this.response);}  
+        
+        var ftpToWrite = {
+          "userId":    userId[1],
+          "nickName":  userName,
+          "gender":    ($("#gender").val()=="女")? 0:1,
+          "birthYear": $("#birthday").val().substring(0,4), //必須是數字。不然寫入會有錯誤
+          "weight":    $("#bodyWeight").val(),
+          "height":    $("#bodyHeight").val(),
+          "score1":    1,
+          "score2":    1,
+          "score3":    1          
+        }
+        console.log(JSON.stringify(ftpToWrite));
+        request.send(JSON.stringify(ftpToWrite));       
+        
+        // end write FTP 
+        
+        // call API:01 增加新會員
+        var res = await callAPI(paramToSend, '寫入資料');
+
+        if (res == "API:01 會員寫入成功") {
+          $("#joinForm").hide();
+          $("#joinFormHeader").hide();
+          //$("#finishMessage").css("display", "block"); 
+          alert("資料新增成功，前往挑戰賽")
+          // 顯示挑戰賽表格
+          console.log("前往挑戰賽");
+          $("#courseSection").css("display", "block");
+          readCoupons();
+          //addCouponCards();
+
+        } else {
+          alert("資料新增失敗，請洽管理員")
+          $("#joinForm").hide();
+          $("#errorMessage").css("display", "block");
+        }        
+      };
+    };
+    
+    async function readCoupons(){
+      console.log("call API to Read Database");
+      userName = decodeURI(displayName[1]);
+
+      allDataReady = 0;
+      // call API:51 =========================================================================      
+      paramToSend = "?API=51";         
+      var res = await callAPI(paramToSend, '讀取挑戰賽資料');      
+
+      if (res != "API:51 challengeData 讀取失敗") {
+        //console.log(res);
+        couponData = JSON.parse(res);
+        allDataReady++; 
+      } else {
+        alert("API:51 challengeData 讀取失敗")
+      }
+      // =====================================================================================      
+
+      // call API:52 =========================================================================
+      paramToSend = "?API=52";      
+      var res = await callAPI(paramToSend, '讀取歷史資料');  
+      
+      if (res != "API:52 challengeHistory 讀取失敗") {
+        //console.log(res);
+        couponHistory = JSON.parse(res);
+        allDataReady++;          
+      } else {
+        alert("API:52 challengeHistory 讀取失敗")
+      }
+      // =====================================================================================      
+      
+
+      // call API:53 =========================================================================
+      paramToSend = "?API=53";      
+      var res = await callAPI(paramToSend, '讀取報名資料');   
+
+      if (res != "API:53 challengeMember 讀取失敗") {
+        //console.log(res);
+        couponMember = JSON.parse(res);  
+        allDataReady++;        
+      } else {
+        alert("API:53 challengeMember 讀取失敗")
+      }
+      // ===================================================================================== 
+
+      // call API:13 =========================================================================
+      paramToSend = "?API=13&"+"UserId="+userId[1];      
+      var res = await callAPI(paramToSend, '讀取會員資料');
+     
+      //res="API:13 courseMember 讀取失敗"; //故意測試錯誤         
+      if (res.substr(0,6) != "API:13") {
+        userPhoneNumber = res;
+        //console.log(userPhoneNumber);
+        allDataReady++;         
+      } else {
+        alert("客戶資料讀取失敗，請稍後再試，或洽櫃台人員");
+      }
+      // =====================================================================================         
+      
+      var checkDataReady = setInterval(function(){
+        if (allDataReady==4) {
+          clearInterval(checkDataReady);
+          console.log("Data is ready", userPhoneNumber);
+          
+          $.loading.start("讀取運動資料, 時間可能會久一點...");          
+          setTimeout(function(){處理挑戰賽資料();}, 100); // 用 setTimeout 讓前一行的 $.loading.start 可以執行及顯示
+        }
+      }, 100);     
+    };
+
+    function 處理挑戰賽資料(){
+      notInCoupon=[];
+      inCoupon=[];
+      myHistory=[];  
+      運動資料=[];
+      var used=false;
+      var isNow=false;
+      var inHistory=false; 
+
+      couponMember.forEach(function(coupon, index, array){  
+        used = false;        
+        for (var i=1; i<coupon.length;i++) {
+          //console.log(coupon[i][0]);
+          if (coupon[i][4] == userPhoneNumber) {
+            //console.log(coupon[0],userName, "已使用")
+            used = true;
+          }
+        };
+
+        isNow = false;
+        couponData.forEach(function(newCoupon, index, array){
+          if (newCoupon[0]==coupon[0]) isNow = true; 
+        });
+
+        inHistory = false;
+        couponHistory.forEach(function(oldCoupon, index, array){
+          if (oldCoupon[0]==coupon[0]) inHistory = true; 
+        });
+
+        if (!used && isNow)     notInCoupon.push(coupon[0]);
+        if (used  && isNow) {
+          inCoupon.push(coupon[0]); 
+          運動資料.push(取得運動資料(coupon[0]));
+          console.log("aaa", 取得運動資料(coupon[0]));            
+        }
+        if (used  && inHistory) myHistory.push(coupon[0]);
+      });
+      $.loading.end();
+      addCouponCards();
+    }        
+      
+    function 取得運動資料(couponNum) {
+      var startDate, endDate;
+      couponData.forEach(function(item, index, array){
+        if (item[0]==couponNum) {
+          startDate = item[2];
+          endDate   = item[3];
+        }
+      });
+                            
+      paramToSend = "?API=50&UserId="+userId[1]
+                     +"&SiteId="+"LINKOU" // change this for other site
+                     +"&ExerciseId=" + "00"
+                     +"&DataType=" + "distance"
+                     +"&DateStart=" + modifyDate(startDate, 0)
+                     +"&DateEnd=" + modifyDate(endDate, 0)
+
+      //console.log(couponNum, paramToSend);      
+      
+      // 必須用同步，不然會出錯，可能是 apiForFirebase 中對於 uGym API 的呼叫重疊會造成錯誤，還沒想到好的做法，就先用同步方式
+      var request=new XMLHttpRequest();
+      request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, false);  
+
+      request.send();
+
+      if (request.status === 200) {
+        //console.log(request.responseText);
+        var creditsNumber = parseFloat($("#credits").val());
+        var res= request.responseText;
+        var resObj = JSON.parse(res.substring(9,res.length));
+        if (resObj.result) {
+          //console.log(typeof resObj.obj[0]);
+          if (resObj.obj[0]==null) resObj.obj[0] = -1;
+        } else {
+          resObj.obj[0] = -2;
+        }
+
+        if (resObj.obj[0]== -2) {
+          console.log("資料度讀取錯誤");  
+          return "資料度讀取錯誤";
+        } else if (resObj.obj[0]== -1) {
+          console.log("尚無運動資料");
+          return "尚無運動資料";
+        } else {
+          //console.log(resObj.obj[0].toString());
+          return resObj.obj[0].toString();
+        }
+      }
+      
+    }
+        
+    function addCouponCards(){
+      console.log("add cards");
+          
+      var cardStr1B='<br> <div class="w3-card-4" style="width:100%;"> <header class="w3-container w3-teal"> \
+                          <h5 class="s-header" style="font-family: \'Noto Sans TC\'">'; //挑戰賽編號及挑戰賽名稱
+      var cardStr1E='</h5> </header>';
+      
+      var cardStr2B='<div class="w3-container" > <p style="margin:0px">挑戰賽期間: ';
+      var cardStr2E='</p></div>'; 
+      var cardStr3B='<div class="w3-container" > <p style="margin:0px">挑戰賽內容: ';
+      var cardStr3E='</p></div>';
+      var cardStr4B='<div class="w3-container" > <p style="margin:0px">挑戰賽費用: ';
+      var cardStr4E='</p></div>';      
+      var cardStr5B='<button class="w3-button w3-block w3-indigo" onclick="參加挑戰賽(\'';
+      var cardStr5E='\')" >參加挑戰賽</button>';
+      var cardStr6B='<div class="w3-container" > <p style="margin:0px">運動紀錄: ';
+      var cardStr6E='</p></div>';   
+      var cardStr7B='<button class="w3-button w3-block w3-grey">';
+      var cardStr7E='</button>';      
+      var cardStr8B='<button class="w3-button w3-block w3-indigo" onclick="兌換獎品(\'';
+      var cardStr8E='\')" >兌換獎品</button>';      
+      var cardStrEE='</div>';                 
+
+      // 課程編號=[];  課程名稱=[];  老師名字=[];  日期時間=[];  卡路里=[];   費用=[];
+      var 挑戰賽編號=[]; var 挑戰賽名稱=[]; var 挑戰賽日期=[]; var 挑戰賽內容=[]; 
+      var 挑戰賽費用=[];
+      
+      // 新增 可使用挑戰賽 卡片 ==============================================================      
+      notInCoupon.forEach(function(couponN, indexN, arrayN){
+        couponData.forEach(function(coupon, index, array){
+          if (couponN == coupon[0]) {
+            //console.log(coupon);
+            挑戰賽編號.push(coupon[0]);
+            挑戰賽名稱.push(coupon[1]);
+            var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
+            挑戰賽日期.push(挑戰賽期間);           
+            挑戰賽內容.push(coupon[4]); 
+            挑戰賽費用.push(coupon[6]);
+          }
+        });
+      });
+
+      var cardStr;
+      for (var i=0;i<notInCoupon.length;i++) {
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr5B+挑戰賽編號[i] + cardStr5E
+                 +cardStrEE;        
+        //console.log(cardStr);
+        $("#availableCourses").append(cardStr);
+      }
+      // ================================================================================ 
+
+      // 新增 已使用挑戰賽 卡片 ==============================================================
+      挑戰賽編號=[]; 挑戰賽名稱=[]; 挑戰賽日期=[]; 挑戰賽內容=[]; 
+      挑戰賽費用=[];      
+      inCoupon.forEach(function(couponN, indexN, arrayN){
+        couponData.forEach(function(coupon, index, array){
+          if (couponN == coupon[0]) {
+            //console.log(coupon);
+            挑戰賽編號.push(coupon[0]); 
+            挑戰賽兌獎編號.push(coupon[0]);
+            挑戰賽名稱.push(coupon[1]);
+            var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
+            挑戰賽日期.push(挑戰賽期間);
+            挑戰賽內容.push(coupon[4]);  
+            挑戰賽費用.push(coupon[6]);  
+            兌獎條件.push(coupon[7]); 
+            獎品數量.push(coupon[8]);                      
+          }
+        });
+      });
+
+      var cardStr;
+      var confirmed=false;
+      var 已兌換=false;
+      for (var i=0;i<inCoupon.length;i++) {
+        // 尋找是否已確認
+        confirmed=false;
+        freeChallenge = false;
+        couponMember.forEach(function(coupon, index, array){
+          if (coupon[0]==inCoupon[i]) {
+            for (var j=1;j<coupon.length;j++){            
+              if (coupon[j][3]==userId[1]) {
+                if (coupon[j][2] =="已繳費")  confirmed=true;
+                if (coupon[j][2] =="已兌換")  已兌換=true;                 
+                if (coupon[j][2] =="免費")   freeChallenge=true;                
+                if (coupon[j][2] =="0")     freeChallenge=true;                 
+              }              
+            };
+          }
+        });
+        
+        var confirmedStr;
+        if (freeChallenge) {
+          confirmedStr = "兌換";//"免費挑戰賽";
+        } else if (confirmed) {
+          confirmedStr = "兌換";//"已繳費";
+        } else if (已兌換){
+          confirmedStr = "已兌換";
+        } else {
+          confirmedStr = "請到櫃台繳費";
+        }
+        
+        if (confirmedStr == "兌換") {
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr6B+運動資料[i]   + " 公里" + cardStr6E          
+                 +cardStr8B+挑戰賽編號[i] + cardStr8E  
+                 +cardStrEE;                 
+        } else {
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E        
+                 +cardStr6B+運動資料[i] + " 公里" + cardStr6E          
+                 +cardStr7B+confirmedStr + cardStr7E  
+                 +cardStrEE;        
+        }
+        //console.log(cardStr);        
+
+
+        $("#usedCoupons").append(cardStr);
+      }      
+      // ===================================================================================      
+      
+      // 新增 過期已使用挑戰賽 卡片 ==============================================================
+      //課程編號=[];  課程名稱=[];  老師名字=[];  日期時間=[];  卡路里=[];   費用=[];  
+      挑戰賽編號=[]; 挑戰賽名稱=[]; 挑戰賽內容=[]; 挑戰賽日期=[];  
+      myHistory.forEach(function(couponN, indexN, arrayN){
+        couponHistory.forEach(function(coupon, index, array){
+          if (couponN == coupon[0]) {
+            //console.log(coupon);
+            挑戰賽編號.push(coupon[0]);
+            挑戰賽名稱.push(coupon[1]);
+            var 挑戰賽期間 = coupon[2] + " ~ " + coupon[3];
+            挑戰賽日期.push(挑戰賽期間); 
+            挑戰賽內容.push(coupon[4]);  
+            挑戰賽費用.push(coupon[6]);               
+          }
+        });
+      });
+      
+      var cardStr;
+      for (var i=0;i<myHistory.length;i++) {
+        cardStr = cardStr1B+挑戰賽編號[i] + " - " +挑戰賽名稱[i] + cardStr1E 
+                 +cardStr2B+挑戰賽日期[i] + cardStr2E
+                 +cardStr3B+挑戰賽內容[i] + cardStr3E
+                 +cardStr4B+挑戰賽費用[i] + cardStr4E               
+                 +cardStr7B+"已結束" + cardStr7E  
+                 +cardStrEE;               
+        //console.log(cardStr);
+
+        $("#oldCoupons").append(cardStr);
+      }      
+      // ===================================================================================            
+      
+    };
+        
+    
+//    API:60 ?API=60&UserName&ChallengeId&UserId&PhoneNumber
+//報名寫入 challengeMember with ["challengeId", ["userName", "日期 已參加", "未繳費"]], 成功回應 "API:60 挑戰賽參加成功" 或 "API:60 挑戰賽參加失敗"
+    
+    function 參加挑戰賽(challengeId){
+      console.log("報名挑戰賽:", challengeId);
+      
+      var challengeFee;
+      couponData.forEach(function(challenge, index, array){
+        if (challenge[0]==challengeId) challengeFee = challenge[6];
+      });
+      console.log(userName, userId[1], userPhoneNumber, "參加挑戰賽:", challengeId, challengeFee);
+      
+      // call API:60 =========================================================================
+      paramToSend = "?API=60&"+"UserName="+userName+"&ChallengeId="+challengeId+"&UserId="+userId[1]+"&PhoneNumber="+userPhoneNumber+"&Fee="+challengeFee;
+      console.log(paramToSend);
+      
+      var request = new XMLHttpRequest()
+      if (useLocalAPIs) {
+        request.open('GET', 'http://localhost:5000' + paramToSend, true);
+      } else {
+        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+      }
+
+      request.onload = function() {
+        alert(this.response);
+        refreshCoupons();
+      }
+      // Send request
+      request.send();      
+      
+    }
+    
+    function 兌換(challengeId){
+      console.log("兌換:", challengeId);
+      
+      var challengeFee;
+      couponData.forEach(function(challenge, index, array){
+        if (challenge[0]==challengeId) challengeFee = challenge[6];
+      });
+      console.log(userName, userId[1], userPhoneNumber, "兌換挑戰賽:", challengeId, challengeFee);
+      
+      // call API:61 =========================================================================
+      paramToSend = "?API=61&"+"UserName="+userName+"&ChallengeId="+challengeId+"&UserId="+userId[1]+"&PhoneNumber="+userPhoneNumber+"&Fee="+challengeFee;
+      console.log(paramToSend);
+      
+      var request = new XMLHttpRequest()
+      if (useLocalAPIs) {
+        request.open('GET', 'http://localhost:5000' + paramToSend, true);
+      } else {
+        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+      }
+
+      request.onload = function() {
+        alert(this.response);
+        refreshCoupons();
+      }
+      // Send request
+      request.send();      
+            
+    }
+    
+    function refreshCoupons() {
+      console.log("refresh Courses");
+      location.reload();
+    }
+    
+    // 使用 https://www.itread01.com/content/1542187759.html 的做法         
+    function modifyDate(dateTemp, days) {  
+      //var dateTemp = dateTemp.split("-");  
+      //var nDate = new Date(dateTemp[1] + '-' + dateTemp[2] + '-' + dateTemp[0]); //轉換為MM-DD-YYYY格式    
+      var nDate = new Date(dateTemp);
+      var millSeconds = Math.abs(nDate) + (days * 24 * 60 * 60 * 1000);  
+      var rDate = new Date(millSeconds);  
+      var year = rDate.getFullYear();  
+      var month = rDate.getMonth() + 1;  
+      if (month < 10) month = "0" + month;  
+      var date = rDate.getDate();  
+      if (date < 10) date = "0" + date;  
+      return (year + "-" + month + "-" + date);  
+    } 
+
+    var 兌換挑戰賽Id;
+    function 兌換獎品(challengeId) {
+      console.log("兌換獎品", challengeId);
+      $("#兌換碼").val("");
+      $("#核銷Modal").css("display", "block");   
+      兌換挑戰賽Id = challengeId;   
+      
+      var 挑戰賽兌獎index=-1;
+      挑戰賽兌獎編號.forEach(function(item, index, array){
+        if (item == 兌換挑戰賽Id) 挑戰賽兌獎index = index;
+      });
+      
+      console.log(挑戰賽兌獎index, 兌獎條件[挑戰賽兌獎index], 獎品數量[挑戰賽兌獎index], 運動資料[挑戰賽兌獎index]);
+       
+      if (isNaN(parseFloat(運動資料[挑戰賽兌獎index])) || (parseFloat(運動資料[挑戰賽兌獎index]) < parseFloat(兌獎條件[挑戰賽兌獎index]))) {
+        alert("抱歉，尚未達兌獎條件");
+        $("#核銷Modal").css("display", "none");
+        return 0;
+      }
+      
+      var 已兌換數=0;
+      couponMember.forEach(function(item, index, array){
+        if (item[0]==兌換挑戰賽Id) {
+          for (var i=1; i< item.length; i++){
+            if (item[i][2] == "已兌換") 已兌換數++;
+          }
+        }
+      });
+      
+      console.log("已兌換",已兌換數, 獎品數量[挑戰賽兌獎index]);
+      
+      if (已兌換數==獎品數量[挑戰賽兌獎index]) {
+        alert("抱歉，獎品已兌完");
+        $("#核銷Modal").css("display", "none");
+      }
+      
+    }    
+    
+    function 確認兌換獎品按鈕() {
+      console.log("確認兌換獎品");
+      $("#核銷Modal").css("display", "none");          
+      if ($("#兌換碼").val()=="4185") {
+        console.log("兌換碼正確");
+        兌換(兌換挑戰賽Id);
+      } else {
+        console.log("兌換碼錯誤");
+        alert("兌換碼錯誤");
+      }
+    }    
+    
+    function 核銷取消按鈕() {
+      console.log("核銷取消按鈕");
+      $("#核銷Modal").css("display", "none");          
+    }
+    
+  </script>
+
+</body>
+
+</html>
