@@ -64,11 +64,12 @@
 <!--        <option value="" disabled selected>男，女或保密</option>-->
         <option value="男">男</option>
         <option value="女">女</option>
-<!--        <option value="保密">保密</option>-->
+        <option value="保密">保密</option>
       </select></p>
     <p>
-      <label>生日(必填，Inbody 量測需要)</label>
-      <input id="birthday" class="w3-input" type="text" placeholder="格式 2020-01-01"></p>      
+      <label>出生年份(必填)</label>
+      <input id="birthday" class="w3-input" type="text" placeholder="例如: 1996"></p>      
+<!--
     <p>     
       <label>身高(必填，Inbody 量測需要)</label>
       <input id="bodyHeight" class="inputWithUnit" type="text" placeholder="例如: 180cm">cm</p>
@@ -77,9 +78,11 @@
       <label>體重(必填，Inbody 量測需要)</label>
       <input id="bodyWeight" class="inputWithUnit" type="text" placeholder="例如: 60kg">kg</p>
       <div style="height: 1px; margin-top: -15px; border-bottom-style: solid;border-width: 1px;border-color: lightgray"></div>      
+-->
     <p>          
       <label>電話(必填，聯絡使用)</label>
       <input id="phone" class="w3-input" type="text"></p>
+<!--
     <p>
       <label>身分證號(必填，作為會員身份辨識，不用做其他用途)</label>
       <input id="identity" class="w3-input" type="text"></p>
@@ -92,6 +95,7 @@
     <p>
       <label>地址(建議，聯絡使用)</label>
       <input id="address" class="w3-input" type="text"></p>
+-->
     <p>          
       <button class="w3-btn w3-block w3-indigo" onclick="addConfirm()">送出資料</button>
     </p>
@@ -264,7 +268,7 @@
         if (useLocalAPIs) {
           request.open('GET', 'http://localhost:5000' + param, true);
         } else {
-          request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+param, true);
+          request.open('GET', 'https://linkou-api-for-firebase.herokuapp.com/'+param, true);
         }
 
         request.onload = function() {
@@ -309,39 +313,39 @@
           || $("#gender").val() == ""
           || $("#birthday").val() == ""
           || $("#phone").val() == ""
-          || $("#identity").val() == ""
-          || $("#emergencyContact").val() == ""
-          || $("#emergencyPhone").val() == ""          
+//          || $("#identity").val() == ""
+//          || $("#emergencyContact").val() == ""
+//          || $("#emergencyPhone").val() == ""          
          ) {
         alert("請填寫必填項目!");
         return 0;
       }
 
       paramToSend = "?API=01" +
-        "&Name=" + $("#name").text() +
-        "&Gender=" + $("#gender").val() +     
-        "&Birth=" + $("#birthday").val() +
-        "&Phone=" + $("#phone").val() +
-        "&ID=" + $("#identity").val() +
-        "&Address=" + $("#address").val() +
-        "&UserId=" + userId[1] +        
-        "&PicURL=" + pictureUrl[1] +       
-        "&Height=" + $("#bodyHeight").val()+
-        "&Weight=" + $("#bodyWeight").val()+        
-        "&EmergencyContact=" + $("#emergencyContact").val()+
-        "&EmergencyPhone=" + $("#emergencyPhone").val();        
+        "&Name="    + $("#name").text() +
+        "&Gender="  + $("#gender").val() +     
+        "&Birth="   + $("#birthday").val() +
+        "&Phone="   + $("#phone").val() +
+        "&ID="      + "" +            //$("#identity").val() +
+        "&Address=" + "" +            //$("#address").val() +
+        "&UserId="  + userId[1] ;        
+//        "&PicURL=" + pictureUrl[1] +       
+//        "&Height=" + $("#bodyHeight").val()+
+//        "&Weight=" + $("#bodyWeight").val()+        
+//        "&EmergencyContact=" + $("#emergencyContact").val()+
+//        "&EmergencyPhone=" + $("#emergencyPhone").val();        
 
       var profile = "請確認會員資料:\n" +
         "    會員姓名: " + $("#name").text() + "\n" +
         "    會員姓別: " + $("#gender").val() + "\n" +
         "    會員生日: " + $("#birthday").val() + "\n" +          
-        "    會員身高: " + $("#bodyHeight").val() + " cm" +"\n" +          
-        "    會員體重: " + $("#bodyWeight").val() + " kg" +"\n" +            
-        "    會員電話: " + $("#phone").val() + "\n" +
-        "    身分證號: " + $("#identity").val() + "\n" +
-        "    會員地址: " + $("#address").val() + "\n" +
-        "    緊急聯絡人:" + $("#emergencyContact").val() + "\n" +       
-        "    緊急聯絡電話:" + $("#emergencyPhone").val(); 
+//        "    會員身高: " + $("#bodyHeight").val() + " cm" +"\n" +          
+//        "    會員體重: " + $("#bodyWeight").val() + " kg" +"\n" +            
+        "    會員電話: " + $("#phone").val() + "\n" ;
+//        "    身分證號: " + $("#identity").val() + "\n" +
+//        "    會員地址: " + $("#address").val() + "\n" +
+//        "    緊急聯絡人:" + $("#emergencyContact").val() + "\n" +       
+//        "    緊急聯絡電話:" + $("#emergencyPhone").val(); 
 
       console.log(paramToSend);
 
@@ -349,31 +353,31 @@
       //webCourseAPI();      
 
       if (confirm(profile)) {
-        // POST to write FTP
-        userName = decodeURI(displayName[1]);
-        var request = new XMLHttpRequest();   // new HttpRequest instance 
-        var theUrl1 = "https://ugym3dbiking.azurewebsites.net/api/Questionnaire?Code=debug123"
-        var theUrl2 = ""; // 預留給 GET 測試
-        request.open("POST", theUrl1);
-        request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        
-        request.onload = function() { console.log("aaa", this.response);}  
-        
-        var ftpToWrite = {
-          "userId":    userId[1],
-          "nickName":  userName,
-          "gender":    ($("#gender").val()=="女")? 0:1,
-          "birthYear": $("#birthday").val().substring(0,4), //必須是數字。不然寫入會有錯誤
-          "weight":    $("#bodyWeight").val(),
-          "height":    $("#bodyHeight").val(),
-          "score1":    1,
-          "score2":    1,
-          "score3":    1          
-        }
-        console.log(JSON.stringify(ftpToWrite));
-        request.send(JSON.stringify(ftpToWrite));       
-        
-        // end write FTP 
+//        // POST to write FTP
+//        userName = decodeURI(displayName[1]);
+//        var request = new XMLHttpRequest();   // new HttpRequest instance 
+//        var theUrl1 = "https://ugym3dbiking.azurewebsites.net/api/Questionnaire?Code=debug123"
+//        var theUrl2 = ""; // 預留給 GET 測試
+//        request.open("POST", theUrl1);
+//        request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+//        
+//        request.onload = function() { console.log("aaa", this.response);}  
+//        
+//        var ftpToWrite = {
+//          "userId":    userId[1],
+//          "nickName":  userName,
+//          "gender":    ($("#gender").val()=="女")? 0:1,
+//          "birthYear": $("#birthday").val().substring(0,4), //必須是數字。不然寫入會有錯誤
+//          "weight":    $("#bodyWeight").val(),
+//          "height":    $("#bodyHeight").val(),
+//          "score1":    1,
+//          "score2":    1,
+//          "score3":    1          
+//        }
+//        console.log(JSON.stringify(ftpToWrite));
+//        request.send(JSON.stringify(ftpToWrite));       
+//        
+//        // end write FTP 
         
         // call API:01 增加新會員
         var res = await callAPI(paramToSend, '寫入資料');
@@ -528,7 +532,7 @@
       
       // 必須用同步，不然會出錯，可能是 apiForFirebase 中對於 uGym API 的呼叫重疊會造成錯誤，還沒想到好的做法，就先用同步方式
       var request=new XMLHttpRequest();
-      request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, false);  
+      request.open('GET', 'https://linkou-api-for-firebase.herokuapp.com/'+paramToSend, false);  
 
       request.send();
 
@@ -742,7 +746,7 @@
       if (useLocalAPIs) {
         request.open('GET', 'http://localhost:5000' + paramToSend, true);
       } else {
-        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+        request.open('GET', 'https://linkou-api-for-firebase.herokuapp.com/'+paramToSend, true);
       }
 
       request.onload = function() {
@@ -771,7 +775,7 @@
       if (useLocalAPIs) {
         request.open('GET', 'http://localhost:5000' + paramToSend, true);
       } else {
-        request.open('GET', 'https://api-linko-sports-center.herokuapp.com/'+paramToSend, true);
+        request.open('GET', 'https://linkou-api-for-firebase.herokuapp.com/'+paramToSend, true);
       }
 
       request.onload = function() {
