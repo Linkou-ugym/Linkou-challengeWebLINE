@@ -839,11 +839,16 @@
       });
       
       console.log(挑戰賽兌獎index, 兌獎條件[挑戰賽兌獎index], 獎品數量[挑戰賽兌獎index], 運動資料[挑戰賽兌獎index], 獎品餘量[挑戰賽兌獎index]);
-       
-      if (isNaN(parseFloat(運動資料[挑戰賽兌獎index])) || (parseFloat(運動資料[挑戰賽兌獎index]) < parseFloat(兌獎條件[挑戰賽兌獎index]))) {
-        alert("抱歉，尚未達兌獎條件");
-        $("#核銷Modal").css("display", "none");
-        return 0;
+     
+      if (   userId[1]=="U002be0c9c9d36e011c0e556bd2047819" 
+          || userId[1]=="U7dda9b7083f5ce3cc7c806a786d61762") { // 小X 和 Jacky
+        console.log("測試兌換帳號不檢查條件");
+      } else {
+        if (isNaN(parseFloat(運動資料[挑戰賽兌獎index])) || (parseFloat(運動資料[挑戰賽兌獎index]) < parseFloat(兌獎條件[挑戰賽兌獎index]))) {
+          alert("抱歉，尚未達兌獎條件");
+          $("#核銷Modal").css("display", "none");
+          return 0;
+        }
       }
       
       var 已兌換數=0; 
